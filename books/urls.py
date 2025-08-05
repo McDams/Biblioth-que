@@ -12,11 +12,7 @@ urlpatterns = [
     
     # Administration
     path('admin/', views.AdminBookListView.as_view(), name='admin_list'),
-    path('admin/add/', views.AdminBookCreateView.as_view(), name='admin_add'),
-    path('admin/<int:pk>/edit/', views.AdminBookUpdateView.as_view(), name='admin_edit'),
-    path('admin/<int:pk>/delete/', views.AdminBookDeleteView.as_view(), name='admin_delete'),
     
     # API endpoints
-    path('<int:book_id>/toggle-favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('<int:book_id>/review/', views.add_review, name='add_review'),
 ]

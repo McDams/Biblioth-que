@@ -1,0 +1,242 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'books:list' %}">Catalogue</a></li>
+            <li class="breadcrumb-item active">{{ book.title|truncatechars:30 }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Image du livre -->
+        <div class="col-md-4">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" class="img-fluid shadow rounded" 
+                     alt="{{ book.title }}" style="max-height: 500px;">
+            {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center shadow rounded" 
+                     style="height: 400px;">
+                    <i class="fas fa-book fa-5x text-muted"></i>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Informations du livre -->
+        <div class="col-md-8">
+            <h1 class="h2">{{ book.title }}</h1>
+            
+            <div class="mb-3">
+                <h6 class="text-muted">
+                    <i class="fas fa-user"></i> Auteur(s):
+                    {% for author in book.authors.all %}
+                        <a href="{% url 'books:by_author' author.id %}" class="text-decoration-none">
+                            {{ author.get_full_name }}
+                        </a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </h6>
+            </div>
+
+            <!-- Informations détaillées -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p><strong>Catégorie:</strong> 
+                                <a href="{% url 'books:by_category' book.category.id %}" class="badge badge-primary">
+                                    {{ book.category.name }}
+                                </a>
+                            </p>
+                            <p><strong>Éditeur:</strong> {{ book.publisher|default:"Non renseigné" }}</p>
+                            <p><strong>ISBN:</strong> {{ book.isbn|default:"Non renseigné" }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Date de publication:</strong> {{ book.publication_date|date:"d F Y"|default:"Non renseignée" }}</p>
+                            <p><strong>Pages:</strong> {{ book.pages|default:"Non renseigné" }}</p>
+                            <p><strong>Langue:</strong> {{ book.language|default:"Non renseignée" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statut et actions -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5>Disponibilité</h5>
+                            {% if book.is_available %}
+                                <span class="badge badge-success badge-lg">
+                                    <i class="fas fa-check-circle"></i> Disponible
+                                </span>
+                            {% else %}
+                                <span class="badge badge-danger badge-lg">
+                                    <i class="fas fa-times-circle"></i> Emprunté
+                                </span>
+                                {% if current_loan %}
+                                    <small class="text-muted d-block mt-1">
+                                        Retour prévu le {{ current_loan.due_date|date:"d F Y" }}
+                                    </small>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if user.is_authenticated %}
+                                {% if book.is_available %}
+                                    <a href="{% url 'loans:borrow' book.id %}" 
+                                       class="btn btn-primary btn-lg">
+                                        <i class="fas fa-hand-holding"></i> Emprunter
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'loans:reserve' book.id %}" 
+                                       class="btn btn-warning btn-lg">
+                                        <i class="fas fa-clock"></i> Réserver
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-sign-in-alt"></i> Se connecter pour emprunter
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            {% if book.description %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-align-left"></i> Description</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ book.description|linebreaks }}</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Mots-clés -->
+            {% if book.keywords %}
+                <div class="mb-4">
+                    <h6><i class="fas fa-tags"></i> Mots-clés:</h6>
+                    {% for keyword in book.keywords.split %}
+                        <span class="badge badge-light mr-1">{{ keyword }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Avis et commentaires -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4><i class="fas fa-comments"></i> Avis des lecteurs</h4>
+            <hr>
+            
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="card-title">{{ review.user.get_full_name|default:review.user.username }}</h6>
+                                <small class="text-muted">{{ review.created_at|date:"d F Y" }}</small>
+                            </div>
+                            <div class="mb-2">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="card-text">{{ review.comment }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Aucun avis pour ce livre pour le moment.
+                </div>
+            {% endif %}
+
+            <!-- Formulaire d'avis -->
+            {% if user.is_authenticated and can_review %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6><i class="fas fa-edit"></i> Laisser un avis</h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{% url 'books:add_review' book.id %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label>Note</label>
+                                <div class="rating-input">
+                                    {% for i in "12345" %}
+                                        <label class="rating-star">
+                                            <input type="radio" name="rating" value="{{ forloop.counter }}" required>
+                                            <i class="far fa-star"></i>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="comment">Commentaire</label>
+                                <textarea class="form-control" name="comment" rows="4" 
+                                          placeholder="Partagez votre avis sur ce livre..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Publier l'avis
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Boutons de navigation -->
+    <div class="row mt-4 mb-4">
+        <div class="col-12">
+            <a href="{% url 'books:list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour au catalogue
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.rating-input {
+    font-size: 1.5rem;
+}
+
+.rating-star {
+    cursor: pointer;
+    color: #ddd;
+}
+
+.rating-star input[type="radio"] {
+    display: none;
+}
+
+.rating-star:hover,
+.rating-star:hover ~ .rating-star,
+.rating-star input[type="radio"]:checked ~ .rating-star {
+    color: #ffc107;
+}
+
+.badge-lg {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+}
+</style>
+{% endblock %}

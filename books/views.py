@@ -120,6 +120,97 @@ def add_review(request, book_id):
     return redirect('books:list')
 
 
+class BooksByAuthorView(ListView):
+    """Vue des livres par auteur"""
+    model = Book
+    template_name = 'books/books_by_author.html'
+    context_object_name = 'books'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        author_id = self.kwargs.get('author_id')
+        return Book.objects.filter(
+            authors__id=author_id,
+            is_active=True
+        ).select_related('category', 'publisher')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        author_id = self.kwargs.get('author_id')
+        context['author'] = get_object_or_404(Author, id=author_id)
+        return context
+
+
+class BooksByCategoryView(ListView):
+    """Vue des livres par catégorie"""
+    model = Book
+    template_name = 'books/books_by_category.html'
+    context_object_name = 'books'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        category_id = self.kwargs.get('category_id')
+        return Book.objects.filter(
+            category_id=category_id,
+            is_active=True
+        ).select_related('category', 'publisher')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category_id = self.kwargs.get('category_id')
+        context['category'] = get_object_or_404(Category, id=category_id)
+        return context
+
+
+class BookSearchView(ListView):
+    """Vue de recherche de livres avec filtres avancés"""
+    model = Book
+    template_name = 'books/search.html'
+    context_object_name = 'books'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        queryset = Book.objects.filter(is_active=True).select_related('category', 'publisher')
+        
+        # Recherche par texte
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) |
+                Q(authors__first_name__icontains=query) |
+                Q(authors__last_name__icontains=query) |
+                Q(keywords__icontains=query) |
+                Q(summary__icontains=query)
+            ).distinct()
+        
+        # Filtres
+        category = self.request.GET.get('category')
+        if category:
+            queryset = queryset.filter(category_id=category)
+        
+        author = self.request.GET.get('author')
+        if author:
+            queryset = queryset.filter(authors__id=author)
+        
+        language = self.request.GET.get('language')
+        if language:
+            queryset = queryset.filter(language=language)
+        
+        # Disponibilité
+        available_only = self.request.GET.get('available')
+        if available_only:
+            queryset = queryset.filter(available_copies__gt=0)
+        
+        return queryset.order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()
+        context['authors'] = Author.objects.all()
+        context['languages'] = Book.objects.values_list('language', flat=True).distinct()
+        return context
+
+
 # Vues d'administration (à compléter)
 class AdminBookListView(LoginRequiredMixin, ListView):
     """Vue d'administration pour la liste des livres"""

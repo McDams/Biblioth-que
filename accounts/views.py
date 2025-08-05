@@ -6,6 +6,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils import timezone
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm
 from .models import CustomUser
 

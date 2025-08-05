@@ -1,0 +1,93 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Administration - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-cogs text-primary"></i>
+                Administration Avancée
+            </h1>
+            <p class="text-muted">Accédez aux fonctionnalités d'administration avancées</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="card-title d-flex align-items-center">
+                        <i class="fas fa-tools text-primary me-2"></i>
+                        <h5>Administration Django</h5>
+                    </div>
+                    <p class="card-text">Accédez à l'interface d'administration complète de Django pour gérer tous les aspects du système.</p>
+                    <a href="/admin/" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i>
+                        Accéder à l'Admin Django
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="card-title d-flex align-items-center">
+                        <i class="fas fa-chart-bar text-success me-2"></i>
+                        <h5>Rapports Avancés</h5>
+                    </div>
+                    <p class="card-text">Consultez les rapports détaillés et les statistiques avancées du système.</p>
+                    <a href="{% url 'dashboard:home' %}" class="btn btn-success">
+                        <i class="fas fa-chart-line"></i>
+                        Voir les Rapports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle"></i>
+                        Fonctionnalités d'Administration
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <h6><i class="fas fa-users text-info"></i> Gestion des Utilisateurs</h6>
+                            <ul class="list-unstyled">
+                                <li>• Créer, modifier, supprimer des comptes</li>
+                                <li>• Gérer les permissions</li>
+                                <li>• Statistiques d'utilisation</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h6><i class="fas fa-book text-warning"></i> Gestion des Livres</h6>
+                            <ul class="list-unstyled">
+                                <li>• Ajouter, modifier des livres</li>
+                                <li>• Gérer les catégories</li>
+                                <li>• Import/Export en masse</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h6><i class="fas fa-handshake text-success"></i> Gestion des Emprunts</h6>
+                            <ul class="list-unstyled">
+                                <li>• Emprunts et retours</li>
+                                <li>• Gestion des retards</li>
+                                <li>• Historique complet</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

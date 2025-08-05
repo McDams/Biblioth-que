@@ -187,3 +187,16 @@ class AdminLoanListView(LoginRequiredMixin, ListView):
             messages.error(request, "Accès non autorisé.")
             return redirect('dashboard:home')
         return super().dispatch(request, *args, **kwargs)
+
+
+class AdminLoanDetailView(LoginRequiredMixin, DetailView):
+    """Vue de détail d'un emprunt pour l'administration"""
+    model = Loan
+    template_name = 'loans/admin_loan_detail.html'
+    context_object_name = 'loan'
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            messages.error(request, "Accès non autorisé.")
+            return redirect('dashboard:home')
+        return super().dispatch(request, *args, **kwargs)

@@ -195,7 +195,7 @@
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <a href="{% url 'loans:admin_detail' loan.pk %}" 
+                                                <a href="/admin/loans/loan/{ loan.pk }/change/" 
                                                    class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
@@ -400,7 +400,7 @@
                             </a>
                         </div>
                         <div class="col-md-3 mb-2">
-                            <a href="{% url 'loans:my_loans' %}" class="btn btn-outline-info btn-block">
+                            <a href="/loans/my-loans/" class="btn btn-outline-info btn-block">
                                 <i class="fas fa-list"></i> Mes Emprunts
                             </a>
                         </div>
@@ -411,7 +411,7 @@
                         </div>
                         {% if user.is_staff %}
                             <div class="col-md-3 mb-2">
-                                <a href="{% url 'dashboard:admin' %}" class="btn btn-outline-success btn-block">
+                                <a href="/dashboard/admin/" class="btn btn-outline-success btn-block">
                                     <i class="fas fa-cogs"></i> Administration
                                 </a>
                             </div>

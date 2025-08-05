@@ -1,0 +1,135 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Recherche - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-search text-primary"></i>
+                Résultats de recherche
+            </h1>
+            {% if query %}
+                <p class="text-muted">{{ books.paginator.count }} résultat(s) pour "{{ query }}"</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Formulaire de recherche -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <form method="get">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="q" 
+                           placeholder="Rechercher un livre, auteur..." 
+                           value="{{ query }}">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i> Rechercher
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'books:list' %}" class="btn btn-secondary">
+                <i class="fas fa-list"></i> Voir tout le catalogue
+            </a>
+        </div>
+    </div>
+
+    <!-- Résultats -->
+    {% if books %}
+        <div class="row">
+            {% for book in books %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if book.cover_image %}
+                            <img src="{{ book.cover_image.url }}" class="card-img-top" 
+                                 alt="{{ book.title }}" style="height: 250px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                 style="height: 250px;">
+                                <i class="fas fa-book fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">{{ book.title|truncatechars:50 }}</h6>
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-user"></i> 
+                                {% for author in book.authors.all %}
+                                    {{ author.get_full_name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-tag"></i> {{ book.category.name }}
+                            </p>
+                            
+                            <div class="mt-auto">
+                                {% if book.is_available %}
+                                    <span class="badge badge-success mb-2">Disponible</span>
+                                {% else %}
+                                    <span class="badge badge-danger mb-2">Emprunté</span>
+                                {% endif %}
+                                
+                                <div>
+                                    <a href="{% url 'books:detail' book.pk %}" 
+                                       class="btn btn-primary btn-sm btn-block">
+                                        <i class="fas fa-eye"></i> Voir détails
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <nav aria-label="Navigation des pages">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&q={{ query }}">Première</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}">Précédente</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}">Suivante</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}">Dernière</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        {% if query %}
+            <div class="text-center">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Aucun résultat trouvé pour "{{ query }}".
+                </div>
+                <a href="{% url 'books:list' %}" class="btn btn-primary">
+                    <i class="fas fa-list"></i> Voir tout le catalogue
+                </a>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
