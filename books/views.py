@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Avg
 from django.utils import timezone
 from datetime import timedelta
 from .models import Book, Category, Author, BookReview
@@ -216,9 +216,65 @@ class AdminBookListView(LoginRequiredMixin, ListView):
     """Vue d'administration pour la liste des livres"""
     model = Book
     template_name = 'books/admin_book_list.html'
+    context_object_name = 'books'
+    paginate_by = 20
     
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_staff:
             messages.error(request, "Accès non autorisé.")
             return redirect('dashboard:home')
         return super().dispatch(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        queryset = Book.objects.all().select_related('category', 'publisher').prefetch_related('authors')
+        
+        # Recherche
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) |
+                Q(authors__first_name__icontains=query) |
+                Q(authors__last_name__icontains=query) |
+                Q(isbn__icontains=query) |
+                Q(keywords__icontains=query)
+            ).distinct()
+        
+        # Filtres
+        category = self.request.GET.get('category')
+        if category:
+            queryset = queryset.filter(category_id=category)
+        
+        status = self.request.GET.get('status')
+        if status == 'available':
+            queryset = queryset.filter(available_copies__gt=0)
+        elif status == 'borrowed':
+            queryset = queryset.filter(available_copies=0)
+        elif status == 'inactive':
+            queryset = queryset.filter(is_active=False)
+        
+        # Tri
+        sort_by = self.request.GET.get('sort', '-created_at')
+        if sort_by in ['title', '-title', 'category__name', '-category__name', 
+                      'created_at', '-created_at', 'publication_date', '-publication_date']:
+            queryset = queryset.order_by(sort_by)
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Statistiques pour l'admin
+        all_books = Book.objects.all()
+        context['total_books'] = all_books.count()
+        context['available_books'] = all_books.filter(available_copies__gt=0).count()
+        context['borrowed_books'] = all_books.filter(available_copies=0).count()
+        context['total_categories'] = Category.objects.count()
+        
+        # Filtres pour le template
+        context['categories'] = Category.objects.all()
+        context['current_query'] = self.request.GET.get('q', '')
+        context['current_category'] = self.request.GET.get('category')
+        context['current_status'] = self.request.GET.get('status')
+        context['current_sort'] = self.request.GET.get('sort', '-created_at')
+        
+        return context
