@@ -64,7 +64,7 @@ class BookDetailView(DetailView):
         # Avis sur le livre
         context['reviews'] = book.reviews.all()[:5]
         context['average_rating'] = book.reviews.aggregate(
-            avg_rating=models.Avg('rating')
+            avg_rating=Avg('rating')
         )['avg_rating']
         
         # Vérifier si l'utilisateur peut emprunter
